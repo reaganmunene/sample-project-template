@@ -1,0 +1,48 @@
+name: Flask CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
+
+    - name: Install Pipenv
+      run: pip install pipenv
+
+    - name: Install dependencies
+      run: |
+        pipenv --python 3.8
+        pipenv install --dev
+      working-directory: ./server
+
+    - name: Ensure flake8 and autopep8 are installed
+      run: pipenv install flake8 autopep8 --dev
+      working-directory: ./server
+
+    - name: Fix linting issues
+      run: pipenv run autopep8 --in-place --aggressive --aggressive $(find . -name "*.py")
+      working-directory: ./server
+
+    - name: Lint
+      run: pipenv run flake8 .
+      working-directory: ./server
+
+    - name: Run tests
+      run: pipenv run pytest
+      working-directory: ./server
+
